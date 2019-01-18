@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 import shutil
 import os
 import time
+from werkzeug.serving import WSGIRequestHandler
 
 app=Flask(__name__)
 dir=''
@@ -37,4 +38,5 @@ def init():
 	return 'System initialized. Data files will be written in '+str(dir)+'\r\n'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    #WSGIRequestHandler.protocol_version = "HTTP/1.1"
+    app.run(host='0.0.0.0', port=5555, debug=False)

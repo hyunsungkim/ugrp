@@ -1,10 +1,2 @@
-This is a list of requests lines. Server should be running on root usr
-
-curl -X GET localhost:5000/
-
-#read data written by bot number 'n'
-curl -X GET localhost:5000/bot?id=n
-
-#write data to nth bot's data note
-curl -X PUT localhost:5000/bot?id=n
+hello!!\r\n
 
