@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 import shutil
 import os
 import time
+import tailer
 from werkzeug.serving import WSGIRequestHandler
 
 app=Flask(__name__)
@@ -11,18 +12,34 @@ dir=''
 def content():
 	file = open('man.txt')
 	text = file.read()
-	return text
+	return text+'\r\n'
 
-@app.route('/bot')
-def handler():
-	bot_id = request.args.get('id')
-	cmd = request.args.get('cmd')
-	filename = str(dir) + 'bot' + str(bot_id) + '.txt'
-	print(filename)
-	file = open(filename, 'r')
-	data = file.read()
+@app.route('/getdata')
+def getDataHandler():
+	id = request.args.get('id')
+	filename = str(dir) + 'to' + str(id) + '.txt'
+	cmd = str(tailer.tail(open(filename), 1))
+	cmd_json = cmd[2:-2]
+	return cmd_json
+
+@app.route('/postdata', methods = ['POST'])
+def postDataHandler():
+	if(request.is_json):
+		jsondata = request.get_json(silent=True)
+	else:
+		return 'Invalid json data\r\n'
+	id = jsondata['id']
+	data_type = jsondata['data-type']
+	data = jsondata['data']
+	filename = str(dir) + 'from' + str(id) + '.txt'
+	file = open(filename, 'a')
+	file.write(str(jsondata)+'\r\n')
+	return "Post complete!\r\n"
 	#return render_template('content.html', text=data)
-	return data+'\r\n'
+
+@app.route('/monitor')
+def showMonitorPage():
+	return render_template('monitor_page.html')
 
 @app.route('/init')
 def init():
@@ -31,7 +48,11 @@ def init():
 	dir = './data/'+timeStamp+'/'
 	os.mkdir(dir)
 	for i in range(11):
-		filename = str(dir) + 'bot' + str(i) + '.txt'
+		filename = str(dir) + 'from' + str(i) + '.txt'
+		file = open(filename, 'w')
+		file.write("")
+		file.close()
+		filename = str(dir) + 'to' + str(i) + '.txt'
 		file = open(filename, 'w')
 		file.write("")
 		file.close()
@@ -39,4 +60,5 @@ def init():
 
 if __name__ == '__main__':
     #WSGIRequestHandler.protocol_version = "HTTP/1.1"
-    app.run(host='0.0.0.0', port=5555, debug=False)
+	print(init())
+	app.run(host='0.0.0.0', port=5555, debug=False)

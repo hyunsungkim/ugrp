@@ -1,2 +1,2 @@
-hello!!\r\n
+This is manual of our server
 

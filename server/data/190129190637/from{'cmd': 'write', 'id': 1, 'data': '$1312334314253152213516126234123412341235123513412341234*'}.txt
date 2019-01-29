@@ -1,0 +1,1 @@
+<bound method JSONMixin.get_json of <Request 'http://141.223.165.244/postdata' [POST]>>
