@@ -4,6 +4,7 @@ import os
 import time
 import tailer
 from werkzeug.serving import WSGIRequestHandler
+from multiprocessing import Process, Queue
 
 app=Flask(__name__)
 dir=''
@@ -14,13 +15,38 @@ def content():
 	text = file.read()
 	return text+'\r\n'
 
-@app.route('/getdata')
-def getDataHandler():
+@app.route('/getcmd')
+def getCmdHandler():
+	# wait for cmd to be written completely()
 	id = request.args.get('id')
 	filename = str(dir) + 'to' + str(id) + '.txt'
 	cmd = str(tailer.tail(open(filename), 1))
 	cmd_json = cmd[2:-2]
 	return cmd_json
+
+@app.route('/getdata')
+def getDataHandler():
+	# wait for data to be written completely()
+	id = request.args.get('id')
+	filename = str(dir) + 'from' + str(id) + '.txt'
+	fd = open(filename)
+	data = fd.read()	
+	return data
+
+
+@app.route('/postcmd', methods = ['POST'])
+def postCmdHandler():
+	if(request.is_json):
+		jsondata = request.get_json(silent=True)
+	else:
+		return 'Invalid json data\r\n'
+	id = jsondata['id']
+	cmd_type = jsondata['cmd-type']
+	cmd = jsondata['cmd']
+	filename = str(dir) + 'to' + str(id) + '.txt'
+	file = open(filename, 'a')
+	file.write(str(jsondata+'\r\n'))
+	return "Post complete!\r\n"
 
 @app.route('/postdata', methods = ['POST'])
 def postDataHandler():
